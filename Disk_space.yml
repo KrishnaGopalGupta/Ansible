@@ -1,0 +1,15 @@
+---
+- name: test
+  hosts: all
+  
+  tasks:
+    - name: re
+      command: "df -kh"
+      register: result	
+    - set_fact: a1="{{result.stdout_lines }}"
+    - name: templating
+      template: 
+        src: host.j2
+        dest: /tmp/host.csv
+      delegate_to: localhost
+      run_once: yes

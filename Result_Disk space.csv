@@ -1,0 +1,15 @@
+Host_Name, Filesystem,Size,Used,Avail,Use%,Mounted_On
+192.168.203.139, devtmpfs, 1.1G,0, 1.1G,0%, /dev
+192.168.203.139, tmpfs, 1.1G,0, 1.1G,0%, /dev/shm
+192.168.203.139, tmpfs, 1.1G, 11M, 1.1G,2%, /run
+192.168.203.139, tmpfs, 1.1G,0, 1.1G,0%, /sys/fs/cgroup
+192.168.203.139, /dev/sda3, 78G, 11G, 68G,14%, /
+192.168.203.139, /dev/sda1, 297M, 178M, 120M,60%, /boot
+192.168.203.139, tmpfs, 208M, 32K, 208M,1%, /run/user/1000
+192.168.203.138, devtmpfs, 1.1G,0, 1.1G,0%, /dev
+192.168.203.138, tmpfs, 1.1G,0, 1.1G,0%, /dev/shm
+192.168.203.138, tmpfs, 1.1G, 11M, 1.1G,2%, /run
+192.168.203.138, tmpfs, 1.1G,0, 1.1G,0%, /sys/fs/cgroup
+192.168.203.138, /dev/sda3, 78G, 11G, 68G,14%, /
+192.168.203.138, /dev/sda1, 297M, 178M, 120M,60%, /boot
+192.168.203.138, tmpfs, 208M, 32K, 208M,1%, /run/user/1000
