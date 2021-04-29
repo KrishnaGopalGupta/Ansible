@@ -2,7 +2,7 @@
 
 
 {% for node in ansible_play_hosts %}
-{% for hostnode in a1 %}
+{% for hostnode in a1 [1:]  %}
 
 {{node}}, {{ hostnode.split()| replace("u\'","")| replace("'","")|replace("[","")|replace("]","") }}
 
