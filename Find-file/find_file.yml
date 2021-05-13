@@ -1,0 +1,37 @@
+---
+- name: Find Listing Playbook
+  connection: local
+  hosts: all
+  gather_facts: no
+  become: yes
+  vars:
+    fcom:
+      - find /opt/occ/var/performance/ -name *.log -mtime +0 -exec ls -lrht {} \;
+      - find /opt/occ/var/performance/pm3gppXml/  -name *.xml -mmin +120 -type f -exec ls -rlht {} \;
+      - find /scripts/ -name link_statuslog_*.txt -mtime +1 -exec ls -lrht {} \;
+      - find /opt/occ/var/performance/pm3gppXml/ -name *.unison* -mtime +0 -type f -exec ls -lrht {} \;
+      - find /var/occ/cdr/OCCLogsBackup/xml -name "*.xml" -type f -mtime +30 -exec ls -lrht {} \;
+      - find /var/occ/cdr/OCCLogsBackup/performance_backup -type f -mtime +30 -exec ls -lrht {} \;
+      - find /var/occ/cdr/OCCLogsBackup/csv -name "A*.csv" -type f -mtime +30 -exec ls -lrht {} \;
+      - find /tmp/ -name "OCC_XML*.log" -mtime +7 -exec ls -lrht {} \;
+      - find /var/occ/cdr/statistics/raw/ -type f -name 'counters*' -mtime +15 -exec ls -lrht {} \;
+      - find /var/occ/cdr/statistics/ -name "*.csv" -type f -mtime +90 -exec ls -lrht {} \;
+  tasks:
+    - name: Executing the Find command
+      shell: "{{ item }}"
+      with_items: "{{ fcom }}"
+      register: out
+      ignore_errors: yes
+
+    - set_fact:
+        s1: []
+    - set_fact:
+        s1: "{{ s1+ item.stdout_lines }}"
+      with_items: "{{ out.results }}"
+
+    - name: Saving the result in CSV
+      template:
+        src: host.j2
+        dest: ./t1.csv
+      delegate_to: localhost
+      run_once: yes
