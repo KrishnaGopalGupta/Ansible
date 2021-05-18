@@ -1,0 +1,33 @@
+---
+- name: Archive and Version Details
+  hosts: node
+  gather_facts: no
+  tasks:
+    - name: show Nxos Details
+      raw: "{{ item }}"
+      with_items:
+        - sh version
+        - sh running-config
+        - sh ip ospf neighbors vrf all
+        - sh logging
+        - sh ip arp vrf all
+        - sh ip arp vrf P-Abis
+        - sh bfd neighbors vrf all
+        - sh inter description
+        - sh ip inter brief
+        - sh bgp all summary
+        - terminal Length 0
+        - sh ip arp
+        - show policy-map interface control-plane class copp-s-glean
+      register: out
+    - local_action: copy content={{out.results | map (attribute='stdout_lines') | list }} dest="logs/./{{inventory_hostname}}.txt"
+    - name: zip file
+      archive:
+        path: /root/saikiran_ansible/logs/./{{inventory_hostname}}.txt
+        dest: ./logs/{{inventory_hostname}}.zip
+        format: zip
+        remove: yes
+      delegate_to: localhost
+
+#    - debug:
+#       msg: "{{ out.results | map (attribute='stdout_lines') | list }}"
