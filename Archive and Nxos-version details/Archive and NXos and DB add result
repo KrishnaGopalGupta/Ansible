@@ -1,0 +1,153 @@
+---
+- name: testing
+  hosts: node
+  ignore_unreachable: yes
+  ignore_errors: True
+  gather_facts: no
+  tasks:
+
+    - name: create directory if they don't exist
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}
+        - /username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/pre_check
+        - /username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/post_check
+      delegate_to: localhost
+
+    - name: show Nxos Details
+      raw: "{{ item }}"
+      with_items:
+        - sh version
+        - sh ip arp
+        - sh running-config
+        - sh ip ospf neighbors vrf all
+        - sh logging
+        - sh ip arp vrf all
+        - sh ip arp vrf P-Abis
+        - sh bfd neighbors vrf all
+        - sh inter description
+        - sh ip inter brief
+        - sh bgp all summary
+        - terminal Length 0
+        - sh ip arp
+        - show policy-map interface control-plane class copp-s-glean
+      register: out
+      ignore_errors: yes
+      ignore_unreachable: yes
+
+    - set_fact:
+        s1: []
+
+    - set_fact:
+        s1: "{{ s1  + [item.item] +  [item.stdout] }}"
+      with_items: "{{ out.results }}"
+      ignore_errors: yes
+
+
+    - local_action: copy content={{ s1 }}  dest=/username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/pre_check/_{{inventory_hostname}}.txt
+
+    - name : Format information File
+      shell: sed 's/\\n/\n/g' "/username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/pre_check/_{{inventory_hostname}}.txt" > "/username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/pre_check/{{inventory_hostname}}.txt"
+      register: final
+      delegate_to: localhost
+      ignore_errors: yes
+
+    - name: Get Local Time
+      command: "date +'%d-%m-%y %T' "
+      register: datetime
+      delegate_to: localhost
+      ignore_errors: yes
+
+
+    - name: Hardware config on Nxos Switch
+      connection: local
+      nxos_config:
+        lines:
+          - config t
+          - hardware ip glean throttle
+          - hardware ip glean throttle maximum 5000
+          - hardware ip glean throttle timeout 600
+          - exit
+        match: line
+    - name: Run several insert queries against db test_db in single transaction
+      command:
+        mysql --user=username test_automation
+        --host=localhost --batch --skip-column-names
+        --execute='INSERT INTO ipthrottle (username,ip, status,date_value) VALUES ("{{username}}","{{inventory_hostname}}","Success","{{datetime.stdout}}")'
+      register: stuff
+      check_mode: no
+      delegate_to: localhost
+      when: conf.failed == false
+
+   # - meta: end_play
+
+    - name: Run several insert queries against db test_db in single transaction
+      command:
+        mysql --user=username test_automation
+        --host=localhost --batch --skip-column-names
+        --execute='INSERT INTO ipthrottle (username,ip, status,date_value) VALUES ("{{username}}","{{inventory_hostname}}","Failed","{{datetime.stdout}}")'
+      register: stuff
+      check_mode: no
+      delegate_to: localhost
+      when: conf.failed == true
+
+
+    - name: show Nxos Details
+      raw: "{{ item }}"
+      with_items:
+        - sh version
+        - sh ip arp
+        - sh running-config
+        - sh ip ospf neighbors vrf all
+        - sh logging
+        - sh ip arp vrf all
+        - sh ip arp vrf P-Abis
+        - sh bfd neighbors vrf all
+        - sh inter description
+        - sh ip inter brief
+        - sh bgp all summary
+        - terminal Length 0
+        - sh ip arp
+      register: shell
+      ignore_errors: yes
+    - set_fact:
+        s2: []
+    - set_fact:
+        s2: "{{ s2  + [item.item] +  [item.stdout] }}"
+      with_items: "{{ shell.results }}"
+    - local_action: copy content={{ s2 }}  dest=/username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/post_check/_{{inventory_hostname}}.txt
+
+    - name : Format information File
+      shell: sed 's/\\n/\n/g' "/username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/post_check/_{{inventory_hostname}}.txt" > "/username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/post_check/{{inventory_hostname}}.txt"
+      register: final
+      delegate_to: localhost
+      ignore_errors: yes
+
+    - name: Delete unwanted files
+      file:
+        path: "{{item}}"
+        state: absent
+      with_items:
+        - "/username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/pre_check/_{{inventory_hostname}}.txt"
+        - "/username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}/post_check/_{{inventory_hostname}}.txt"
+      delegate_to: localhost
+      ignore_errors: yes
+
+
+    - name: zip file
+      archive:
+        path: /username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}
+        dest: /username/ /flask-app/ipThrottle-Flask/Basic-Flask-App/ansible/ip-throttle/output/{{filename}}.zip
+        format: zip
+      delegate_to: localhost
+
+    - debug: msg={{out}}
+    #- debug: msg={{shell}}
+
+
+
+		
+      register: conf
+      ignore_errors: yes
